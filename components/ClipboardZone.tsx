@@ -52,11 +52,22 @@ export default function ClipboardZone() {
 
   const handleCopy = async (content: string, id: string) => {
     try {
-      await navigator.clipboard.writeText(content);
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(content);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = content;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 2000);
     } catch (e) {
-      console.error('Erreur copie');
+      console.error('Erreur copie', e);
     }
   };
 
