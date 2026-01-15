@@ -39,15 +39,15 @@ export function DashboardClient() {
   const MAX_HEIGHT = 400;
 
   return (
-    <main className="min-h-screen bg-neutral-950 text-neutral-200 p-8 font-mono">
-      <div className="max-w-5xl mx-auto space-y-8">
-        <header className="flex items-center justify-between border-b border-neutral-800 pb-6">
+    <main className="min-h-screen bg-neutral-950 text-neutral-200 p-4 sm:p-8 font-mono">
+      <div className="max-w-5xl mx-auto space-y-6 sm:space-y-8">
+        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4 sm:pb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-500/10 rounded-lg">
-              <Server className="w-6 h-6 text-blue-400" />
+              <Server className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white">{t('title')}</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-white">{t('title')}</h1>
               <p className="text-xs text-neutral-500">{t('subtitle')}</p>
             </div>
           </div>
@@ -85,56 +85,58 @@ export function DashboardClient() {
                       type="text"
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="Rechercher par port, service, utilisateur..."
+                      placeholder={t('searchPlaceholder')}
                       className="w-full pl-10 pr-4 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-blue-500 text-sm"
                     />
                   </div>
                 </div>
                 
-                <table className="w-full text-left text-sm">
-                  <thead className="bg-neutral-950 text-neutral-500 uppercase text-xs tracking-wider">
-                    <tr>
-                      <th className="px-6 py-3 font-medium">{t('port')}</th>
-                      <th className="px-6 py-3 font-medium">{t('service')}</th>
-                      <th className="px-6 py-3 font-medium">{t('pid')}</th>
-                      <th className="px-6 py-3 font-medium">{t('user')}</th>
-                      <th className="px-6 py-3 font-medium">{t('protocol')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-800">
-                    {filteredPorts.map((item, idx) => (
-                      <tr 
-                        key={`${item.pid}-${item.port}-${idx}`} 
-                        className="hover:bg-neutral-800/50 transition-colors"
-                      >
-                        <td className="px-6 py-4 font-bold text-blue-400">
-                          :{item.port}
-                        </td>
-                        <td className="px-6 py-4">
-                          <span className={clsx(
-                            "px-2 py-1 rounded text-xs font-medium",
-                            item.command === 'node' ? "bg-green-500/20 text-green-300" :
-                            item.command === 'python' || item.command === 'python3' ? "bg-yellow-500/20 text-yellow-300" :
-                            item.command === 'nginx' ? "bg-purple-500/20 text-purple-300" :
-                            "bg-neutral-800 text-neutral-400"
-                          )}>
-                            {item.command}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-neutral-500">{item.pid}</td>
-                        <td className="px-6 py-4 text-neutral-500">{item.user}</td>
-                        <td className="px-6 py-4 text-neutral-600 text-xs">{item.protocol}</td>
-                      </tr>
-                    ))}
-                    {filteredPorts.length === 0 && !isLoading && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm min-w-[600px]">
+                    <thead className="bg-neutral-950 text-neutral-500 uppercase text-xs tracking-wider">
                       <tr>
-                        <td colSpan={5} className="p-8 text-center text-neutral-500">
-                          {searchQuery ? 'Aucun résultat trouvé' : t('noListeners')}
-                        </td>
+                        <th className="px-3 sm:px-6 py-3 font-medium">{t('port')}</th>
+                        <th className="px-3 sm:px-6 py-3 font-medium">{t('service')}</th>
+                        <th className="px-3 sm:px-6 py-3 font-medium hidden sm:table-cell">{t('pid')}</th>
+                        <th className="px-3 sm:px-6 py-3 font-medium hidden md:table-cell">{t('user')}</th>
+                        <th className="px-3 sm:px-6 py-3 font-medium hidden lg:table-cell">{t('protocol')}</th>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-neutral-800">
+                      {filteredPorts.map((item, idx) => (
+                        <tr 
+                          key={`${item.pid}-${item.port}-${idx}`} 
+                          className="hover:bg-neutral-800/50 transition-colors"
+                        >
+                          <td className="px-3 sm:px-6 py-4 font-bold text-blue-400">
+                            :{item.port}
+                          </td>
+                          <td className="px-3 sm:px-6 py-4">
+                            <span className={clsx(
+                              "px-2 py-1 rounded text-xs font-medium",
+                              item.command === 'node' ? "bg-green-500/20 text-green-300" :
+                              item.command === 'python' || item.command === 'python3' ? "bg-yellow-500/20 text-yellow-300" :
+                              item.command === 'nginx' ? "bg-purple-500/20 text-purple-300" :
+                              "bg-neutral-800 text-neutral-400"
+                            )}>
+                              {item.command}
+                            </span>
+                          </td>
+                          <td className="px-3 sm:px-6 py-4 text-neutral-500 hidden sm:table-cell">{item.pid}</td>
+                          <td className="px-3 sm:px-6 py-4 text-neutral-500 hidden md:table-cell">{item.user}</td>
+                          <td className="px-3 sm:px-6 py-4 text-neutral-600 text-xs hidden lg:table-cell">{item.protocol}</td>
+                        </tr>
+                      ))}
+                      {filteredPorts.length === 0 && !isLoading && (
+                        <tr>
+                          <td colSpan={5} className="p-8 text-center text-neutral-500">
+                            {searchQuery ? t('noResults') : t('noListeners')}
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
 
               {!isExpanded && filteredPorts.length > 5 && (
@@ -145,7 +147,7 @@ export function DashboardClient() {
                     className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 px-4 py-2 bg-neutral-800/90 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm text-neutral-300 transition-colors backdrop-blur-sm"
                   >
                     <ChevronDown className="w-4 h-4" />
-                    Voir tout ({filteredPorts.length} ports)
+                    {t('viewAll')} ({filteredPorts.length} {t('ports')})
                   </button>
                 </>
               )}
@@ -157,7 +159,7 @@ export function DashboardClient() {
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-neutral-800 hover:bg-neutral-700 border border-neutral-700 rounded-lg text-sm text-neutral-300 transition-colors"
                   >
                     <ChevronUp className="w-4 h-4" />
-                    Réduire
+                    {t('reduce')}
                   </button>
                 </div>
               )}
@@ -165,7 +167,7 @@ export function DashboardClient() {
           )}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
           <TransitZone />
           <ClipboardZone />
         </div>

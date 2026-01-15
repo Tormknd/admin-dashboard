@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "System Monitor - Server Dashboard",
-  description: "Dashboard de surveillance des ports système",
+  title: "Admin Dashboard",
+  description: "Dashboard d'administration serveur avec monitoring des ports, zone de transit et clipboard",
 };
 
 export default function RootLayout({

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Clipboard, Copy, Trash2, Check, X } from 'lucide-react';
 import clsx from 'clsx';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface ClipboardItem {
   id: string;
@@ -12,6 +13,7 @@ interface ClipboardItem {
 }
 
 export default function ClipboardZone() {
+  const { t } = useLanguage();
   const [items, setItems] = useState<ClipboardItem[]>([]);
   const [input, setInput] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -77,7 +79,7 @@ export default function ClipboardZone() {
   };
 
   const handleClear = async () => {
-    if (!confirm('Supprimer tout le contenu du clipboard ?')) return;
+    if (!confirm(t('clearClipboardConfirm'))) return;
     await fetch('/api/clipboard?clear=true', { method: 'DELETE' });
     setItems([]);
   };
@@ -88,18 +90,18 @@ export default function ClipboardZone() {
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
     
-    if (minutes < 1) return 'À l\'instant';
-    if (minutes < 60) return `Il y a ${minutes}min`;
+    if (minutes < 1) return t('justNow');
+    if (minutes < 60) return `${minutes}${t('minutesAgo')}`;
     const hours = Math.floor(minutes / 60);
-    if (hours < 24) return `Il y a ${hours}h`;
+    if (hours < 24) return `${hours}${t('hoursAgo')}`;
     return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
   };
 
   return (
     <div className="bg-neutral-900 rounded-xl border border-neutral-800 shadow-xl overflow-hidden">
-      <div className="p-4 border-b border-neutral-800 flex justify-between items-center bg-neutral-900/50">
+      <div className="p-3 sm:p-4 border-b border-neutral-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-neutral-900/50">
         <h2 className="text-sm font-semibold text-neutral-300 flex items-center gap-2">
-          <Clipboard className="w-4 h-4 text-blue-400" /> Clipboard
+          <Clipboard className="w-4 h-4 text-blue-400" /> {t('clipboard')}
         </h2>
         {items.length > 0 && (
           <button
@@ -107,42 +109,42 @@ export default function ClipboardZone() {
             className="text-xs text-neutral-400 hover:text-red-400 transition-colors flex items-center gap-1"
           >
             <X className="w-3 h-3" />
-            Tout effacer
+            {t('clearAll')}
           </button>
         )}
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         <form onSubmit={handleSubmit} className="space-y-3">
-          <textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Colle ou tape du texte ici..."
-            className="w-full h-24 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-blue-500 resize-none font-mono text-sm"
-          />
-          <button
-            type="submit"
-            disabled={!input.trim()}
-            className={clsx(
-              "w-full px-4 py-2 rounded-lg font-medium text-sm transition-colors",
-              input.trim()
-                ? "bg-blue-500 hover:bg-blue-600 text-white"
-                : "bg-neutral-800 text-neutral-500 cursor-not-allowed"
-            )}
-          >
-            Ajouter au clipboard
-          </button>
+            <textarea
+              ref={textareaRef}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={t('pasteOrType')}
+              className="w-full h-24 px-3 py-2 bg-neutral-800 border border-neutral-700 rounded-lg text-neutral-200 placeholder-neutral-500 focus:outline-none focus:border-blue-500 resize-none font-mono text-sm"
+            />
+            <button
+              type="submit"
+              disabled={!input.trim()}
+              className={clsx(
+                "w-full px-4 py-2 rounded-lg font-medium text-sm transition-colors",
+                input.trim()
+                  ? "bg-blue-500 hover:bg-blue-600 text-white"
+                  : "bg-neutral-800 text-neutral-500 cursor-not-allowed"
+              )}
+            >
+              {t('addToClipboard')}
+            </button>
         </form>
 
         <div className="space-y-2">
           <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3">
-            Historique ({items.length})
+            {t('history')} ({items.length})
           </h3>
           
           {items.length === 0 ? (
             <div className="text-center py-8 text-neutral-600 text-sm">
-              Clipboard vide.
+              {t('clipboardEmpty')}
             </div>
           ) : (
             <div className="grid gap-2 max-h-96 overflow-y-auto">
@@ -157,23 +159,23 @@ export default function ClipboardZone() {
                     </span>
                     <div className="flex items-center gap-1">
                       <button
-                        onClick={() => handleCopy(item.content, item.id)}
-                        className="p-1.5 text-neutral-400 hover:text-blue-400 hover:bg-blue-400/10 rounded transition-colors"
-                        title="Copier"
-                      >
-                        {copiedId === item.id ? (
-                          <Check className="w-4 h-4 text-green-400" />
-                        ) : (
-                          <Copy className="w-4 h-4" />
-                        )}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      onClick={() => handleCopy(item.content, item.id)}
+                      className="p-1.5 text-neutral-400 hover:text-blue-400 hover:bg-blue-400/10 rounded transition-colors"
+                      title="Copy"
+                    >
+                      {copiedId === item.id ? (
+                        <Check className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
+                    </button>
+                    <button
+                      onClick={() => handleDelete(item.id)}
+                      className="p-1.5 text-neutral-400 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
+                      title={t('delete')}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                     </div>
                   </div>
                   <p className="text-sm text-neutral-200 font-mono whitespace-pre-wrap break-words">

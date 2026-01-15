@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Upload, File, Trash2, Download, Clock, ShieldCheck, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
+import { useLanguage } from '@/lib/LanguageContext';
 
 interface FileRecord {
   id: string;
@@ -14,6 +15,7 @@ interface FileRecord {
 }
 
 export default function TransitZone() {
+  const { t } = useLanguage();
   const [files, setFiles] = useState<FileRecord[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
@@ -93,7 +95,7 @@ export default function TransitZone() {
   };
 
   const handleDelete = async (filename: string) => {
-    if (!confirm('Supprimer ce fichier ?')) return;
+    if (!confirm(t('deleteFileConfirm'))) return;
     
     await fetch(`/api/transit/delete?filename=${filename}`, { method: 'DELETE' });
     setFiles(files.filter(f => f.filename !== filename));
@@ -109,14 +111,14 @@ export default function TransitZone() {
 
   return (
     <div className="bg-neutral-900 rounded-xl border border-neutral-800 shadow-xl overflow-hidden">
-      <div className="p-4 border-b border-neutral-800 flex justify-between items-center bg-neutral-900/50">
+      <div className="p-3 sm:p-4 border-b border-neutral-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-neutral-900/50">
         <h2 className="text-sm font-semibold text-neutral-300 flex items-center gap-2">
-          <Upload className="w-4 h-4 text-blue-400" /> Zone de Transit
+          <Upload className="w-4 h-4 text-blue-400" /> {t('transitZone')}
         </h2>
-        <span className="text-xs text-neutral-500">Stockage temporaire</span>
+        <span className="text-xs text-neutral-500">{t('temporaryStorage')}</span>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
         <div className="space-y-3">
           <form
             onDragEnter={handleDrag}
@@ -145,8 +147,8 @@ export default function TransitZone() {
               ) : (
                 <Upload className="w-8 h-8 text-neutral-400" />
               )}
-              <p className="text-sm text-neutral-300 font-medium">
-                {isUploading ? "Transfert vers le serveur..." : "Glisser un fichier ou cliquer pour uploader"}
+              <p className="text-sm text-neutral-300 font-medium text-center px-2">
+                {isUploading ? t('uploading') : t('dragOrClick')}
               </p>
               <p className="text-xs text-neutral-500">Min 5GB free space required</p>
             </div>
@@ -162,7 +164,7 @@ export default function TransitZone() {
             />
             <label htmlFor="deleteAfter24h" className="text-sm text-neutral-400 select-none cursor-pointer flex items-center gap-2">
               <Clock className="w-3 h-3" />
-              Supprimer après 24h
+              {t('deleteAfter24h')}
             </label>
           </div>
 
@@ -175,11 +177,11 @@ export default function TransitZone() {
         </div>
 
         <div className="space-y-2">
-          <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3">Fichiers sur le serveur</h3>
+          <h3 className="text-xs font-medium text-neutral-500 uppercase tracking-wider mb-3">{t('filesOnServer')}</h3>
           
           {files.length === 0 ? (
             <div className="text-center py-8 text-neutral-600 text-sm">
-              Aucun fichier en transit.
+              {t('noFiles')}
             </div>
           ) : (
             <div className="grid gap-2">
@@ -215,14 +217,14 @@ export default function TransitZone() {
                     <a 
                       href={`/api/transit/download?filename=${file.filename}&name=${encodeURIComponent(file.originalName)}`}
                       className="p-2 text-neutral-400 hover:text-blue-400 hover:bg-blue-400/10 rounded transition-colors"
-                      title="Télécharger"
+                      title={t('download')}
                     >
                       <Download className="w-4 h-4" />
                     </a>
                     <button 
                       onClick={() => handleDelete(file.filename)}
                       className="p-2 text-neutral-400 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors"
-                      title="Supprimer"
+                      title={t('delete')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
