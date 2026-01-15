@@ -14,7 +14,7 @@ export interface PortInfo {
 
 export async function getActivePorts(): Promise<PortInfo[]> {
   try {
-    const { stdout } = await execAsync('lsof -iTCP -sTCP:LISTEN -P -n');
+    const { stdout } = await execAsync('/usr/bin/lsof -iTCP -sTCP:LISTEN -P -n');
     return parseLsofOutput(stdout);
   } catch (error) {
     console.error('System command failed:', error);
@@ -47,7 +47,7 @@ function parseLsofOutput(output: string): PortInfo[] {
       const protocol = parts[4] || 'IPv4';
       const name = parts.slice(8).join(' ');
       
-      const portMatch = name.match(/:(\d+)$/);
+      const portMatch = name.match(/:(\d+)/);
       const port = portMatch ? parseInt(portMatch[1], 10) : 0;
 
       if (isNaN(port) || port === 0) {
