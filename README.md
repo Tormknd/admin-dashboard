@@ -9,39 +9,49 @@
 
 ## 📖 L'Histoire
 
-Je gère un VPS Hetzner sur lequel je déploie pas mal de projets : des backends Node.js, des scripts Python, du Next.js et des conteneurs Docker. Plus j'ajoutais de services, plus c'était le chaos. Je me retrouvais constamment à devoir me connecter en SSH juste pour lancer un `netstat` ou un `lsof` pour comprendre pourquoi j'avais une erreur `EADDRINUSE` ou pour me rappeler où j'avais déployé telle API.
+Je gère un VPS Hetzner sur lequel je déploie de nombreux projets : backends Node.js, scripts Python, frontends Next.js et conteneurs Docker. Avec l'accumulation des services, c'était devenu le chaos. Je perdais du temps à me connecter en SSH juste pour lancer un `netstat` ou pour transférer un fichier de config depuis mon téléphone.
 
 **Ce projet est ma solution.**
 
-Je voulais construire un Panel Admin centralisé, un véritable "Couteau Suisse" pour mon serveur. L'objectif n'est pas de remplacer des outils lourds comme Grafana, mais d'avoir un dashboard léger, agréable et extensible pour regrouper tous les petits outils du quotidien que je trouve utiles.
+J'ai construit ce Panel Admin centralisé comme un "Couteau Suisse" pour mon serveur. L'objectif n'est pas de remplacer Grafana, mais d'avoir un dashboard léger, agréable et extensible pour les tâches quotidiennes.
 
 ## 🏗️ Philosophie & Architecture
 
 L'approche est minimaliste : **Zéro dépendance sur l'hôte**.
-Le dashboard effectue ses propres vérifications système en utilisant les commandes Linux standards via une architecture modulaire.
+Le dashboard effectue ses propres vérifications système en utilisant les commandes Linux standards et le système de fichiers natif.
 
-Aujourd'hui, le focus est mis sur le **Live Port Monitor**, mais la structure du code (Next.js App Router + API Routes isolées) est conçue pour intégrer très facilement de nouveaux outils de monitoring (disque, logs, processus) au fur et à mesure que les besoins se présenteront.
+L'architecture est modulaire (Next.js App Router), permettant d'ajouter des "briques" de fonctionnalités isolées.
 
-## ✨ Fonctionnalités (Port Monitor)
+## ✨ Modules & Fonctionnalités
 
-- **Suivi Temps Réel** : Rafraîchissement automatique des ports occupés (SWR polling).
-- **Identification des Processus** : Voir instantanément quel utilisateur/PID utilise quel port.
-- **Support Protocoles** : Distinction claire entre IPv4 et IPv6.
-- **Sécurité by Design** : Commandes système hardcodées pour empêcher toute injection shell.
-- **Internationalisation** : Support EN/FR avec switch de langue.
+### 1. 📡 Live Port Monitor
+Pour ne plus jamais avoir d'erreurs `EADDRINUSE`.
+- **Temps Réel** : Rafraîchissement automatique (SWR polling).
+- **Deep Scan** : Identification du Processus (PID), de l'Utilisateur et du Protocole (IPv4/IPv6).
+- **Sécurité** : Parsing strict de la commande `lsof` (pas d'accès shell direct).
+
+### 2. ☁️ Transit Zone
+Un cloud personnel éphémère pour transférer des fichiers entre mes appareils (Tel <-> PC <-> Serveur).
+- **Smart Upload** : Drag & Drop fluide.
+- **Disk Guard** : Vérifie l'espace disque avant upload (bloque si < 5GB libres).
+- **Auto-Destruction** : Les fichiers sont supprimés automatiquement après 24h (sauf si marqués "Persistants").
+- **Téléchargement Sécurisé** : Stream de fichiers via API authentifiée (pas d'accès public direct).
+
+### 3. 📋 Clipboard
+Stockage temporaire de texte avec historique pour synchroniser du contenu entre appareils.
+- **Historique** : Jusqu'à 50 éléments récents.
+- **Copie Rapide** : Un clic pour copier dans le presse-papier.
+- **Interface Simple** : Textarea pour coller ou taper du texte.
 
 ![Aperçu du Dashboard](./public/admin-dashboard-img.png)
 
 ## 🛡️ Sécurité
 
-Comme ce dashboard expose des infos système, la sécurité était la priorité, pas une option.
+Comme ce dashboard expose des infos système, la sécurité est la priorité absolue.
 
-1.  **Authentification** : Protégé par un **Middleware Basic Auth**. Pas de base de données requise, les identifiants sont dans le `.env.local`.
-2.  **Isolation** : L'interface ne parle jamais au shell directement. Elle passe par une API (`/api/system/ports`) qui exécute une commande strictement définie :
-    ```bash
-    lsof -iTCP -sTCP:LISTEN -P -n
-    ```
-3.  **Performance** : Optimisé pour une consommation RAM/CPU minime sur le VPS.
+1.  **Authentification** : Protégé par un **Middleware Basic Auth**. Pas de base de données, tout est dans `.env.local`.
+2.  **Isolation** : L'interface ne parle jamais au shell directement pour les entrées utilisateur.
+3.  **File Safety** : Les uploads sont stockés hors du dossier public web pour éviter l'exécution de scripts malveillants.
 
 ## 🚀 Démarrage
 
@@ -66,11 +76,19 @@ Créez un fichier `.env.local`. **Ne commitez pas ce fichier.**
 ```env
 DASHBOARD_USER=admin
 DASHBOARD_PWD=votre_mot_de_passe_robuste
-# Optionnel : Port interne du dashboard
 PORT=8888
 ```
 
-### 4. Déploiement (PM2)
+### 4. Automatisation (Cron)
+
+Pour le nettoyage automatique des fichiers temporaires :
+
+```bash
+# Dans crontab -e
+0 * * * * curl -u admin:password http://localhost:8888/api/cron/cleanup
+```
+
+### 5. Déploiement (PM2)
 
 ```bash
 npm run build
@@ -81,12 +99,8 @@ pm2 start ecosystem.config.js
 
 Le dashboard tourne avec les privilèges de l'utilisateur qui lance le processus Node.js.
 
-* Lancé en `root` : Il voit tous les ports.
-* Lancé en utilisateur standard (recommandé) : Il voit uniquement les processus appartenant à cet utilisateur.
-
-## 🤝 Contribution
-
-Le projet est conçu pour être évolutif. Si vous avez besoin d'un outil spécifique et que vous souhaitez l'ajouter, les Pull Requests sont les bienvenues.
+* Lancé en `root` : Il voit tous les ports et tous les fichiers.
+* Lancé en utilisateur standard (recommandé) : Il voit uniquement ses propres processus.
 
 ---
 

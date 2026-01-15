@@ -23,7 +23,7 @@ export async function getActivePorts(): Promise<PortInfo[]> {
 }
 
 function parseLsofOutput(output: string): PortInfo[] {
-  const lines = output.trim().split('\n');
+  const lines = output.trim().split('\n');  
   
   if (lines.length <= 1) {
     return [];

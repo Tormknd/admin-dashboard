@@ -9,6 +9,16 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  const pathname = req.nextUrl.pathname;
+  if (pathname.startsWith('/api/cron/')) {
+    const forwarded = req.headers.get('x-forwarded-for');
+    const ip = forwarded ? forwarded.split(',')[0] : req.headers.get('x-real-ip') || '';
+    if (ip === '127.0.0.1' || ip === '::1' || ip.startsWith('192.168.') || ip.startsWith('10.')) {
+      return NextResponse.next();
+    }
+    return new NextResponse('Forbidden', { status: 403 });
+  }
+
   const basicAuth = req.headers.get('authorization');
 
   if (basicAuth) {

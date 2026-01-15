@@ -6,6 +6,8 @@ import { Activity, Server, AlertCircle } from 'lucide-react';
 import clsx from 'clsx';
 import { useLanguage } from '@/lib/LanguageContext';
 import { LanguageSwitch } from '@/components/LanguageSwitch';
+import TransitZone from '@/components/TransitZone';
+import ClipboardZone from '@/components/ClipboardZone';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
@@ -94,6 +96,11 @@ export function DashboardClient() {
               </table>
             </div>
           )}
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TransitZone />
+          <ClipboardZone />
         </div>
       </div>
     </main>
